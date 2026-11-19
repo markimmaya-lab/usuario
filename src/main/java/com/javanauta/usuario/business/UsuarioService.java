@@ -6,6 +6,7 @@ import com.javanauta.usuario.infrastructure.entity.Usuario;
 import com.javanauta.usuario.infrastructure.exceptions.ConflictException;
 import com.javanauta.usuario.infrastructure.exceptions.ResourceNotFoundException;
 import com.javanauta.usuario.infrastructure.repository.UsuarioRepository;
+import com.javanauta.usuario.infrastructure.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final UsuarioConverter usuarioConverter;
     private final PasswordEncoder PasswordEncoder;
+    private final JwtUtil jwtUtil;
+    private final PasswordEncoder passwordEncoder;
 
     public UsuarioDTO salvaUsuario(UsuarioDTO usuarioDTO){
         emailExiste(usuarioDTO.getEmail());
@@ -49,6 +52,24 @@ public class UsuarioService {
     public void deletaUsuarioPorEmail(String email){
         usuarioRepository.deleteByEmail(email);
     }
+
+   public UsuarioDTO atualizaDadosUsuario(String token, UsuarioDTO dto){
+        /// Buscando email do usuario atraves do token (tirar obrigatoriedade do email)
+      String email = jwtUtil.extrairEmailToken(token.substring(7)) ;
+
+            // criptografia de senha
+            dto.setSenha(dto.getSenha() != null ? passwordEncoder.encode(dto.getSenha()) : null);
+
+        //Busca os dados do usuario no banco de dados
+      Usuario usuarioEntity = usuarioRepository.findByEmail(email).orElseThrow(() ->
+                new ResourceNotFoundException("Email não localizado"));
+
+        //mesclou os dados que recebeu na requisição DTO com os dados do banco de dados
+      Usuario usuario = usuarioConverter.updateUsuario(dto, usuarioEntity);
+
+        //salvou os dados do usuario convertido e depois pegou o retorno e converteu para usuarioDTO
+      return usuarioConverter.paraUsuarioDTO(usuarioRepository.save(usuario));
+   }
 }
 
 

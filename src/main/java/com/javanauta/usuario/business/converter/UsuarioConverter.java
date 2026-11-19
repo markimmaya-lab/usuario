@@ -25,7 +25,7 @@ public class UsuarioConverter {
     }
 
     public List<Endereco> paraListaEndereco(List<EnderecoDTO> enderecoDTOS){
-        //Vai fazer o mapeamento transformando cada endereço em uma lista
+        //Vai fazer o mapeamento transformando cada endereço em uma lista, to usando no lugar do for
         return  enderecoDTOS.stream().map(this::paraEndereco).toList();
     }
     public Endereco paraEndereco(EnderecoDTO enderecoDTO){
@@ -83,6 +83,17 @@ public class UsuarioConverter {
         return TelefoneDTO.builder()
                 .numero(telefoneDTO.getNumero())
                 .ddd(telefoneDTO.getDdd())
+                .build();
+    }
+
+    public Usuario updateUsuario(UsuarioDTO usuarioDTO, Usuario entity){
+        return Usuario.builder()
+                .nome(usuarioDTO.getNome() != null ? usuarioDTO.getNome() : entity.getNome())
+                .id(entity.getId())
+                .senha(usuarioDTO.getSenha() != null ? usuarioDTO.getSenha() : entity.getSenha())
+                .email(usuarioDTO.getEmail() != null ? usuarioDTO.getEmail() : entity.getEmail())
+                .endereco(entity.getEndereco())
+                .telefone(entity.getTelefone())
                 .build();
     }
 }
